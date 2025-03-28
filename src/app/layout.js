@@ -1,34 +1,37 @@
-// src/app/layout.jsx
-import './globals.css' // Assurez-vous que Tailwind est importé ici ou via un fichier CSS global
+// src/app/layout.js (ou .jsx)
+import { Inter } from "next/font/google";
+import "./globals.css";
+// --- AJOUTÉ ---
+import AudioPlayer from '@/components/AudioPlayer'; // Importe le lecteur
+// --- FIN AJOUT ---
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'Foot Radio App', // Changez le titre
-  description: 'Écoutez les matchs de foot en direct',
-}
+  title: "Tsubasa Radio App",
+  description: "Écoutez les matchs de foot en direct",
+};
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr"> {/* Mettre la langue sur fr */}
-      <body>
-        {/* Placeholder pour un futur Header */}
-        <header style={{ background: '#ddd', padding: '10px 0', textAlign: 'center' }}>
-          HEADER (Logo, Nav...)
+    <html lang="fr">
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
+
+        <header className="bg-gray-800 text-white p-4">
+          <p>Mon En-tête (Header)</p>
         </header>
 
-        {/* Contenu principal de la page */}
-        <main style={{ padding: '20px' }}>
+        <main className="flex-grow container mx-auto p-4">
           {children}
         </main>
 
-        {/* Placeholder pour le futur lecteur audio persistent */}
-        <footer style={{ position: 'fixed', bottom: 0, left: 0, width: '100%', background: '#333', color: 'white', padding: '15px', textAlign: 'center', zIndex: 1000 }}>
-          PLAYER PERSISTANT
+        {/* --- MODIFIÉ : Ajout du composant AudioPlayer --- */}
+        <footer className="sticky bottom-0 z-10"> {/* Enlevé bg/padding car AudioPlayer les a */}
+          <AudioPlayer /> {/* Remplace le placeholder */}
         </footer>
-
-        {/* Espace pour éviter que le contenu ne passe sous le footer fixe */}
-        <div style={{ height: '80px' }}></div> {/* Ajustez la hauteur si besoin */}
+        {/* --- FIN MODIFICATION --- */}
 
       </body>
     </html>
-  )
+  );
 }

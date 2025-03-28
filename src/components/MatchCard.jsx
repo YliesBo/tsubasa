@@ -1,97 +1,120 @@
 // src/components/MatchCard.jsx
+'use client'; // <-- AJOUTÉ: Nécessaire car on utilise un hook (useRadioStore)
+
 import React from 'react';
-// Importe les composants Card que tu viens d'ajouter avec Shadcn
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  // CardDescription, // On n'en a peut-être pas besoin ici
-  // CardFooter // On n'en a peut-être pas besoin ici
-} from "@/components/ui/card"; // Assure-toi que le chemin est correct (@ pointe vers src)
-import Image from 'next/image'; // Pour afficher les logos proprement
-
-// Fonction utilitaire de Shadcn pour fusionner les classes Tailwind
+} from "@/components/ui/card";
+import Image from 'next/image';
 import { cn } from "@/lib/utils";
 
-// Le composant MatchCard - Il attend un objet 'match' en props
-export default function MatchCard({ match }) {
+// --- AJOUTÉ ---
+// Importe le hook de notre store Zustand
+import { useRadioStore } from '@/store/radioStore';
+// --- FIN AJOUT ---
 
-  // Si pas de données de match, on n'affiche rien ou un message
+export default function MatchCard({ match }) {
+  // --- AJOUTÉ ---
+  // Récupère l'action setSelectedMatch depuis le store
+  const setSelectedMatch = useRadioStore((state) => state.setSelectedMatch);
+  // Récupère aussi le match actuellement sélectionné pour un effet visuel (optionnel)
+  const selectedMatchId = useRadioStore((state) => state.selectedMatch?.idEvent);
+  // --- FIN AJOUT ---
+
   if (!match) {
-    return null; // Ou <p>Données de match manquantes</p>
+    return null;
   }
 
-  // Données de base (on utilisera les vraies données du 'match' prop)
   const {
-    strHomeTeam = "Équipe A", // Valeurs par défaut pour l'exemple
+    strHomeTeam = "Équipe A",
     strAwayTeam = "Équipe B",
-    strHomeTeamBadge = "/placeholder-logo.png", // Chemin vers un logo placeholder
+    strHomeTeamBadge = "/placeholder-logo.png",
     strAwayTeamBadge = "/placeholder-logo.png",
     strLeague = "Ligue",
-    dateEventLocal = "YYYY-MM-DD", // Date locale
-    strTimeLocal = "HH:MM", // Heure locale
-    idEvent = "default-id" // ID du match
-    // Ajoute d'autres champs dont tu auras besoin (ex: strStatus, intHomeScore, intAwayScore...)
+    dateEventLocal = "YYYY-MM-DD",
+    strTimeLocal = "HH:MM",
+    idEvent = "default-id",
+    strStatus // Récupère aussi le statut (ex: "Not Started", "Live", "Finished")
   } = match;
 
-  // Pour le tag "Live" (statique pour l'instant)
-  const isLive = true; // Mettre à false pour le cacher si besoin
+  // Détermine si la carte est celle du match sélectionné (pour style visuel)
+  const isSelected = selectedMatchId === idEvent;
+
+  // Adapte le tag LIVE basé sur le statut réel si disponible
+  // (Attention: Les statuts de TheSportsDB peuvent varier, ex: "NS", "1H", "HT", "2H", "FT")
+  // Ceci est une interprétation simple, à affiner si besoin.
+  const isLive = strStatus && !["NS", "FT", "PST", "CANC", "ABD", "AWD", "WO"].includes(strStatus.toUpperCase());
+  const displayStatus = strStatus === "NS" ? `${dateEventLocal} - ${strTimeLocal}` : strStatus;
+
+  // --- MODIFIÉ : Ajout du handler ---
+  const handleCardClick = () => {
+    console.log("MatchCard clicked:", match.strEvent, match.idEvent);
+    setSelectedMatch(match); // Appelle l'action du store avec les données du match
+  };
+  // --- FIN MODIFICATION ---
 
   return (
-    <Card className="w-[300px] overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200 ease-in-out"> {/* Style de base de la carte */}
-      <CardHeader className="p-4 bg-gray-50 dark:bg-gray-800"> {/* En-tête avec fond léger */}
-        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
-          <span>{strLeague}</span>
-          <span>{dateEventLocal} - {strTimeLocal}</span>
-        </div>
-        <CardTitle className="text-sm font-semibold text-center"> {/* Titre (peut-être pas nécessaire ici) */}
-          {/* On met les équipes dans CardContent plutôt */}
-        </CardTitle>
-        {isLive && (
-          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-            LIVE
-          </div>
+    // --- MODIFIÉ : Enveloppé dans un <button> et ajout onClick ---
+    <button
+      type="button" // Important pour un bouton qui n'est pas dans un <form>
+      onClick={handleCardClick}
+      className={cn(
+        "w-full text-left rounded-lg overflow-hidden transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", // Style pour le bouton (reset + focus)
+        isSelected ? "ring-2 ring-primary ring-offset-2" : "" // Style si sélectionné
+      )}
+    >
+      <Card className={cn(
+          "w-full shadow-lg hover:shadow-xl",
+          isSelected ? "border-primary" : "" // Bordure si sélectionné
         )}
-      </CardHeader>
-      <CardContent className="p-4"> {/* Contenu principal */}
-        <div className="flex items-center justify-around text-center">
-          {/* Équipe Domicile */}
-          <div className="flex flex-col items-center w-1/3">
-            <Image
-              src={strHomeTeamBadge || "/placeholder-logo.png"}
-              alt={`Logo ${strHomeTeam}`}
-              width={40}
-              height={40}
-              className="mb-1"
-              unoptimized // Si les URL des logos sont externes et non optimisables par Next/Image
-            />
-            <span className="text-xs font-medium truncate w-full">{strHomeTeam}</span>
-          </div>
-
-          {/* Score (ou VS pour l'instant) */}
-          <div className="text-lg font-bold mx-2">
-            VS {/* Remplacer par les scores quand disponibles */}
-          </div>
-
-          {/* Équipe Extérieur */}
-          <div className="flex flex-col items-center w-1/3">
-            <Image
-              src={strAwayTeamBadge || "/placeholder-logo.png"}
-              alt={`Logo ${strAwayTeam}`}
-              width={40}
-              height={40}
-              className="mb-1"
-              unoptimized // Si les URL des logos sont externes
-            />
-            <span className="text-xs font-medium truncate w-full">{strAwayTeam}</span>
-          </div>
-        </div>
-      </CardContent>
-      {/* On pourrait ajouter un CardFooter pour un bouton "Voir détails" plus tard */}
-      {/* <CardFooter className="p-2 justify-center">
-        <button className="text-xs text-blue-600 hover:underline">Détails</button>
-      </CardFooter> */}
-    </Card>
+      >
+         <CardHeader className="p-3 relative bg-gray-50 dark:bg-gray-800"> {/* Padding réduit */}
+           <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
+             <span className="truncate pr-1">{strLeague}</span> {/* Truncate League */}
+             {/* Affiche Statut (ou Date/Heure si NS) */}
+             <span className="flex-shrink-0">{displayStatus}</span>
+           </div>
+           {/* Tag Live amélioré */}
+           {isLive && (
+             <div className="absolute top-1 right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded z-10">
+               LIVE
+             </div>
+           )}
+         </CardHeader>
+         <CardContent className="p-3"> {/* Padding réduit */}
+           <div className="flex items-center justify-around text-center">
+             <div className="flex flex-col items-center w-[40%]"> {/* Largeur ajustée */}
+               <Image
+                 src={strHomeTeamBadge || "/placeholder-logo.png"}
+                 alt={`Logo ${strHomeTeam}`}
+                 width={32} // Taille réduite
+                 height={32}
+                 className="mb-1"
+                 unoptimized
+               />
+               <span className="text-xs font-medium truncate w-full">{strHomeTeam}</span>
+             </div>
+             <div className="text-base font-bold mx-1"> {/* Taille ajustée */}
+               VS
+             </div>
+             <div className="flex flex-col items-center w-[40%]"> {/* Largeur ajustée */}
+               <Image
+                 src={strAwayTeamBadge || "/placeholder-logo.png"}
+                 alt={`Logo ${strAwayTeam}`}
+                 width={32} // Taille réduite
+                 height={32}
+                 className="mb-1"
+                 unoptimized
+               />
+               <span className="text-xs font-medium truncate w-full">{strAwayTeam}</span>
+             </div>
+           </div>
+         </CardContent>
+      </Card>
+    </button>
+    // --- FIN MODIFICATION ---
   );
 }
