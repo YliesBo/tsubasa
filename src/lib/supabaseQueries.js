@@ -25,6 +25,7 @@ export async function getFrenchRadios() {
  * @param {string} teamBId - L'ID TheSportsDB de l'équipe B.
  * @returns {Promise<Array<object>>} - Une promesse résolvant avec la liste des objets radios applicables.
  */
+
 export async function getRadiosForMatch(matchId, teamAId, teamBId) {
     console.log(`Searching radios for match ${matchId} (Teams: ${teamAId}, ${teamBId})`);
     let radioIds = [];
